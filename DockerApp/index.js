@@ -12,39 +12,35 @@ const __dirname = path.dirname(__filename);
 
 app.use(express.static(__dirname + '/images'));
 
-app.get("/kitty", (request, response) => {
-    downloadImage('https://genrandom.com/cats/');
-    response.sendFile(__dirname + '/views/image.html');
+app.get("/kitty", async (request, response) => {
+    downloadImage('https://genrandom.com/cats/', 'cat');
+    response.sendFile(__dirname + '/views/catPNG.html');
 });
 
-app.get("/puppy", (request, response) => {
-    downloadImage('https://random.dog/');
-    response.sendFile(__dirname + '/views/screenshot.html');
+app.get("/puppy", async (request, response) => {
+    downloadImage('https://random.dog/', 'dog', response);
 });
 
-app.get("/www.*", (request, response) => {
+app.get("/www.*", async (request, response) => {
     console.log(request.protocol);
     try {
         console.log(request.originalUrl.substring(1));
-        if (request.protocol === 'https')
-            captureScreenshot('https://' + request.originalUrl);
-        else if (request.protocol === 'http')
-            captureScreenshot('http://' + request.originalUrl);
+        await captureScreenshot('http://' + request.originalUrl);
     } catch (error) {
         console.log(`Error: unable to visit ${request.originalUrl} website.`);
     }
     response.sendFile(__dirname + "/views/screenshot.html");
 });
 
-app.get('/^(?!(kitty|puppy|www.*))', (request, response) => {
-    console.log('Error: please enter the correct input.')
+app.get('*', async (request, response) => {
+    response.sendFile(__dirname + '/views/error.html');
 });
 
 app.listen(PORT, () => {
     console.log(`Express is running on port ${PORT}`);
-})
+});
 
-async function downloadImage(url) {
+async function downloadImage(url, type, expressResponse) {
     if (!fs.existsSync("images")) {
         fs.mkdirSync("images");
     }
@@ -56,10 +52,23 @@ async function downloadImage(url) {
         if (response.request().resourceType() === 'image') {
             response.buffer()
             .then(file => {
-                const fileName = url.split('/').pop().substring(0, 10);
-                const filePath = path.resolve('images', fileName);
-                const writeStream = fs.createWriteStream(filePath);
-                writeStream.write(file);
+                const fileName = url.split('/').pop();
+                if (!(fileName.includes('gen') || fileName.includes('sodar')) && type === 'cat') {
+                    const filePath = path.resolve(__dirname, 'images', 'cat.png');
+                    const writeStream = fs.createWriteStream(filePath);
+                    writeStream.write(file);
+                } else if (type === 'dog') {
+                    const extension = fileName.substring(fileName.indexOf('.'));
+                    console.log(extension);
+                    const filePath = path.resolve(__dirname, 'images', 'dog' + extension);
+                    const writeStream = fs.createWriteStream(filePath);
+                    writeStream.write(file);
+                    try {
+                        expressResponse.sendFile(__dirname + '/views/dog' + extension.replace('.', '').toUpperCase() + '.HTML');
+                    } catch (errorFormat) {
+                        console.log('Video format is not supported');
+                    }
+                }
             }).catch((error) => {
                 console.error(error.message);
             }) 

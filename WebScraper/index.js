@@ -14,14 +14,15 @@ app.get("/kitty", async (request, response) => {
     console.log('User requested a cat image.');
 
     const website = 'https://genrandom.com/cats/';
-    const timestamp = Date.now();
-    const random = Math.floor(Math.random() * (max - min + 1)) + min; 
-    const filename = timestamp + "_" + random + ".png";
+    const filename = "cat.png";
     const filepath = path.join(IMAGE_PATH, filename);
     console.log('The image is saved in the following path: ' + filepath);
 
     (async () => {
-        const browser = await puppeteer.launch();
+        const browser = await puppeteer.launch({
+            args: ['--no-sandbox'],
+            headless: true,
+        });
         const page = await browser.newPage();
         // If below waitunitl is not added, then the code might take screenshot even before all resources load
         // networkidle2 is heuristic that "thinks" site is loaded if no more than 2 requests happen in 500 ms;
@@ -38,9 +39,7 @@ app.get("/puppy", async (request, response) => {
     console.log('User requested a dog image.');
 
     const website = 'https://random.dog/';
-    const timestamp = Date.now();
-    const random = Math.floor(Math.random() * (max - min + 1)) + min; 
-    const filename = timestamp + "_" + random + ".png";
+    const filename = "dog.png";
     const filepath = path.join(IMAGE_PATH, filename);
     console.log('The image is saved in the following path: ' + filepath);
 
@@ -50,7 +49,10 @@ app.get("/puppy", async (request, response) => {
     };
 
     (async () => {
-        const browser = await puppeteer.launch();
+        const browser = await puppeteer.launch({
+            args: ['--no-sandbox'],
+            headless: true,
+        });
         const page = await browser.newPage();
         // If below waitunitl is not added, then the code might take screenshot even before all resources load
         // networkidle2 is heuristic that "thinks" site is loaded if no more than 2 requests happen in 500 ms;
@@ -76,14 +78,15 @@ app.get("/puppy", async (request, response) => {
 app.get("/www.*", async (request, response) => {
     const website = 'http://' + request.url.substring(1);
     console.log('User requested the following website screenshot: ' + website);
-    const timestamp = Date.now();
-    const random = Math.floor(Math.random() * (max - min + 1)) + min; 
-    const filename = timestamp + "_" + random + ".png";
+    const filename = "screenshot.png";
     const filepath = path.join(IMAGE_PATH, filename);
     console.log('The screenshot is saved in the following path: ' + filepath);
 
     (async () => {
-        const browser = await puppeteer.launch();
+        const browser = await puppeteer.launch({
+            args: ['--no-sandbox'],
+            headless: true,
+        });
         const page = await browser.newPage();
         // If below waitunitl is not added, then the code might take screenshot even before all resources load
         // networkidle2 is heuristic that "thinks" site is loaded if no more than 2 requests happen in 500 ms;
